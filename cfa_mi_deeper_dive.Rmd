@@ -1,0 +1,79 @@
+---
+title: "CFA and MI Deeper Dive"
+author: "Matthew Schell"
+date: "2/22/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(lavaan)
+library(tidyverse)
+library(psych)
+
+sample_df <- read_csv("C:/Users/schel/My Drive/Personal/Blog/CFA and MI Deeper Dive/cfa_mi_deeper_drive_data.csv")
+
+#Reducing sample size so analyses run faster
+set.seed(101)
+sample_df <- sample_n(sample_df, 5000)
+```
+
+#CFA
+```{r}
+model.dass <-'
+    stress =~ Q22A + Q6A + Q12A + Q39A + Q8A + Q14A + Q18A 
+    anxiety =~ Q2A + Q4A + Q41A + Q40A + Q28A + Q19A + Q20A
+    depression =~ Q3A + Q42A + Q10A + Q26A + Q31A + Q17A + Q38A 
+    '
+fit.dass <- cfa(model.dass, data = sample_df, missing = "fiml", estimator = "ML")
+summary(fit.dass, fit.measures = TRUE, standardized = TRUE)
+mod.ind <- modificationindices(fit.dass, sort = T)
+View(mod.ind)
+
+#Nice function if you want more information about your estimates
+par_est <- parameterestimates(fit.dass, rsquare = T)
+View(par_est)
+```
+
+#MI
+```{r}
+#Recoding the voted variable
+sample_df$voted <- replace(sample_df$voted, sample_df$voted == 0, NA)
+
+model.mi <- ' 
+    stress =~ Q22A + Q6A + Q12A + Q39A + Q8A + Q14A + Q18A
+    anxiety =~ Q2A + Q4A + Q41A + Q40A + Q28A + Q19A + Q20A
+    depression =~ Q3A + Q42A + Q10A + Q26A + Q31A + Q17A + Q38A 
+'
+fit.config <- cfa(model.mi, data = sample_df, missing = "fiml", group = "voted",  estimator = "ML")
+summary(fit.config, fit.measures = TRUE, standardized = TRUE)
+
+fit.weak <- cfa(model.mi, data = sample_df, missing = "fiml", group = "voted", group.equal = "loadings",  estimator = "ML")
+summary(fit.weak, fit.measures = TRUE, standardized = TRUE)
+anova(fit.config, fit.weak)
+df_weak_test <- lavTestScore(fit.weak)
+df_weak_test <- (as_data_frame(df_weak_test[2]))
+table.weak <- parTable(fit.weak)
+
+fit.weak2 <- cfa(model.mi, data = sample_df, missing = "fiml", group = "voted", group.equal = "loadings", group.partial = c("anxiety =~ Q40A", "anxiety =~ Q41A", "anxiety =~ Q4A", "stress =~ Q14A"),  estimator = "ML")
+summary(fit.weak2, fit.measures = TRUE, standardized = TRUE)
+anova(fit.config, fit.weak2)
+
+fit.strong <- cfa(model.mi, data = sample_df, missing = "fiml", group = "voted", group.equal = c("loadings", "intercepts"), group.partial = c("anxiety =~ Q40A", "anxiety =~ Q41A", "anxiety =~ Q4A", "stress =~ Q14A"),  estimator = "ML")
+summary(fit.strong, fit.measures = TRUE, standardized = TRUE)
+anova(fit.weak2, fit.strong)
+df_strong_test <- lavTestScore(fit.strong)
+df_strong_test <- (as_data_frame(df_strong_test[2]))
+table.strong <- parTable(fit.strong)
+
+fit.strict <- cfa(model.mi, data = sample_df, missing = "fiml", group = "voted", group.equal = c("loadings", "intercepts", "residuals"), group.partial = c("anxiety =~ Q40A", "anxiety =~ Q41A", "anxiety =~ Q4A", "stress =~ Q14A"),  estimator = "ML")
+summary(fit.strict, fit.measures = TRUE, standardized = TRUE)
+anova(fit.strong, fit.strict)
+df_strict_test <- lavTestScore(fit.strict)
+df_strict_test <- (as_data_frame(df_strict_test[2]))
+table.strict <- parTable(fit.strict)
+```
+
