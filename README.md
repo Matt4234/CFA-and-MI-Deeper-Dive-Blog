@@ -1,2 +1,3 @@
 # cfa-mi-deeper-dive-blog-post
-Repository for cfa and mi deeper dive blog post.
+This repository houses data and R script for a blog post on my website:
+[https://matthewjschell.com/2022/02/16/a-deeper-dive-into-cfa-and-measurement-invariance-fit-issues/?preview_id=117&preview_nonce=cd042ef6dd&preview=true](url)
