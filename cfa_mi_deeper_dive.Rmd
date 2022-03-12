@@ -62,7 +62,7 @@ fit.weak2 <- cfa(model.mi, data = sample_df, missing = "fiml", group = "voted", 
 summary(fit.weak2, fit.measures = TRUE, standardized = TRUE)
 anova(fit.config, fit.weak2)
 
-fit.strong <- cfa(model.mi, data = sample_df, missing = "fiml", group = "voted", group.equal = c("loadings", "intercepts"), group.partial = c("anxiety =~ Q40A", "anxiety =~ Q41A", "anxiety =~ Q4A", "stress =~ Q14A"),  estimator = "ML")
+fit.strong <- cfa(model.mi, data = sample_df, missing = "fiml", group = "voted", group.equal = c("loadings", "intercepts"), group.partial = c("anxiety =~ Q40A", "anxiety =~ Q41A", "anxiety =~ Q4A", "stress =~ Q14A", "Q14A ~1"),  estimator = "ML")
 summary(fit.strong, fit.measures = TRUE, standardized = TRUE)
 anova(fit.weak2, fit.strong)
 df_strong_test <- lavTestScore(fit.strong)
